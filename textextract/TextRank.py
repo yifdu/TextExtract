@@ -1,6 +1,7 @@
 import math
 import numpy as np
 import networkx as nx
+import codecs
 class TextRank:
     def __init__(self,corpus_filename=None,window=2,stopwords_filename=None):
         self.window=window
