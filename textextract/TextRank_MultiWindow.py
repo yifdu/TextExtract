@@ -2,16 +2,33 @@ import math
 import numpy as np
 import networkx as nx
 import codecs
+import jieba
+import re
 
 class TextRank_MultiWindow:
     def __init__(self,corpus_filename=None,min_window=2,max_window=5,stopwords_filename=None):
         self.min_window = min_window
         self.max_window=max_window
+        inputs=[]
         if stopwords_filename:
             stopword_file = codecs.open(stopwords_filename, "r", encoding='utf-8')
             self.stopwords = set([line.strip() for line in stopword_file])
         if corpus_filename:
-            pass  ##TODO
+            corpus = codecs.open(corpus_filename, 'r', encoding='utf-8')
+
+            for sentence in corpus:
+                S = []
+                for str in self.get_tokens(sentence.strip()):
+                    S.extend(self.tokenize(str))
+                inputs.append(S)
+        self.keywords=self.get_keywords(inputs)
+
+    def tokenize(self,str):
+        return list(jieba.cut(str))
+
+    def get_tokens(self,str):#保留完整的URL
+        return re.findall(r"<a.*?/a>|<[^\>]*>|[\w'@#]+", str.lower())
+
     def get_keywords(self,corpus):
 
     #1. 把给定的文本T按照完整句子进行分割，即
@@ -26,7 +43,7 @@ class TextRank_MultiWindow:
         idx=0
         for word_list in corpus:
             for word in word_list:
-                if word not in word2idx:
+                if word not in word2idx and word not in self.stopwords:
                     word2idx[word]=idx
                     idx2word[idx]=word
                     idx+=1
@@ -63,5 +80,5 @@ class TextRank_MultiWindow:
         for key,values in res_dict.items():
             res[key]=np.average(values)
         sorted_res=sorted(res.items(),key=lambda item:item[1],reverse=True)
-        return res_dict
+        return sorted_res
 

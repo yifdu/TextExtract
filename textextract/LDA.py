@@ -1,6 +1,8 @@
 import codecs
 from gensim import models,corpora
 import math
+import jieba.posseg as jp
+
 #
 class LDAModel:
     def __init__(self,corpus_filename=None,num_topics=7,stopwords_filename=None):

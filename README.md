@@ -7,5 +7,4 @@ Model:
 5. LDA
 6. RAKE
 7. BM25
-8. Topic Word Embedding(TWE)
 

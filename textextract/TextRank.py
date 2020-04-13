@@ -2,19 +2,32 @@ import math
 import numpy as np
 import networkx as nx
 import codecs
+import re
+import jieba
+
 class TextRank:
     def __init__(self,corpus_filename=None,window=2,stopwords_filename=None):
         self.window=window
         if stopwords_filename:
             stopword_file = codecs.open(stopwords_filename, "r", encoding='utf-8')
             self.stopwords = set([line.strip() for line in stopword_file])
+        inputs=[]
         if corpus_filename:
-            pass ##TODO
+            corpus = codecs.open(corpus_filename, 'r', encoding='utf-8')
 
-        #self.keywords=self.get_keywords(corpus)
-        #self.keysentence=self.get_key_sentences(corpus)
+            for sentence in corpus:
+                S=[]
+                for str in self.get_tokens(sentence.strip()):
+                    S.extend(self.tokenize(str))
+                inputs.append(S)
 
 
+        self.keywords=self.get_keywords(inputs)
+        self.keysentence=self.get_key_sentences(inputs)
+    def tokenize(self,str):
+        return list(jieba.cut(str))
+    def get_tokens(self,str):#保留完整的URL
+        return re.findall(r"<a.*?/a>|<[^\>]*>|[\w'@#]+", str.lower())
     def get_keywords(self,corpus):
 
     #1. 把给定的文本T按照完整句子进行分割，即
@@ -29,7 +42,7 @@ class TextRank:
         idx=0
         for word_list in corpus:
             for word in word_list:
-                if word not in word2idx:
+                if word not in word2idx and word not in self.stopwords:
                     word2idx[word]=idx
                     idx2word[idx]=word
                     idx+=1
@@ -81,5 +94,5 @@ class TextRank:
         sorted_scores=sorted(scores.items(),key=lambda item:item[1],reverse=True)
         res=[]
         for idx,score in sorted_scores:
-            res.append((corpus[idx],score))
+            res.append((''.join(corpus[idx]),score))
         return res
