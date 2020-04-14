@@ -1,24 +1,62 @@
 import codecs
 from gensim import models,corpora
 import math
-#
+import jieba
+import jieba.posseg as jp
+
+
+def seg_to_list(sentence, pos=False):
+    if not pos:
+        seg_list = jieba.cut(sentence)
+    else:
+        seg_list = jp.cut(sentence)
+    return seg_list
+
+def get_stopword_list(stopword_file):
+    L=codecs.open(stopword_file,'r',encoding='utf-8')
+    return [word.strip() for word in L]
+
+
+
+
 class LSIModel:
     def __init__(self,corpus_filename=None,num_topics=7,stopwords_filename=None):
-        if stopwords_filename:
-            stopword_file = codecs.open(stopwords_filename, "r", encoding='utf-8')
-            self.stopwords = set([line.strip() for line in stopword_file])
-        if corpus_filename:
+        #读取停用词
+        L = codecs.open(stopwords_filename, 'r', encoding='utf-8')
+        self.stopsword=[word.strip() for word in L]
+        #读取语料
+        corpus_list=codecs.open(corpus_filename,'r',encoding='utf-8')
+        doc_list=[self.word_filter(seg_to_list(text.strip())) for text in corpus_list]
 
-            pass ##TODO
+        self.dictionary=corpora.Dictionary(doc_list)
+        corpus=[self.dictionary.doc2bow(doc) for doc in doc_list]
+
         self.tfidf_model=models.TfidfModel(corpus)
-        self.model=models.LsiModel(docs_tfidf,id2word=idx2word,num_topics=num_topics)
+        corpus_tfidf=self.tfidf_model[corpus]
+
+
+        self.model=models.LsiModel(corpus_tfidf,id2word=self.dictionary,num_topics=num_topics)
         word_dic=[]
         for doc in doc_list:
             word_dic.extend(doc)
-        self.dictionary=corpora.Dictionary(doc_list)
         word_dic=list(set(word_dic))
         self.wordtopic_dic=self.get_wordtopic(word_dic)
 
+    def word_filter(self,seg_list, pos=False):
+
+        filter_list = []
+        for seg in seg_list:
+            if not pos:
+                word = seg
+                flag = 'n'
+            else:
+                word = seg.word
+                flag = seg.flag
+            if not flag.startswith('n'):
+                continue
+            if word not in self.stopsword and len(word) > 1:
+                filter_list.append(word)
+        return filter_list
     def get_wordtopic(self,word_dict):
         wordtopic_dict={}
         for word in word_dict:
@@ -48,3 +86,7 @@ class LSIModel:
                 continue
             sim_dic[k]=cal_similarity(v,senttopic)
         return sorted(sim_dic.items(),key=lambda d:d[1],reverse=True)
+
+    def run(self,text):
+        word_list=self.word_filter(seg_to_list(text.strip()))
+        return self.get_simword(word_list)

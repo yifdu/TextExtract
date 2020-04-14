@@ -10,12 +10,11 @@ def is_number(s):
         return False
 
 class RAKE:
-    def __init__(self,corpus_filename=None,stopwords_filename=None):
+    def __init__(self,stopwords_filename=None):
         if stopwords_filename:
             stopword_file = codecs.open(stopwords_filename, "r", encoding='utf-8')
             self.stopwords = set([line.strip() for line in stopword_file])
-        if corpus_filename:
-            pass ##TODO
+
 
     def seperate_sentence(self,doc):
         sentence_delimiters = re.compile(u'[。，！；：.!?,;:\t\\\\"\\(\\)\\\'\u2019\u2013]|\\s\\-\\s')
@@ -66,8 +65,8 @@ class RAKE:
             keyword_candidates_mean[phrase]=candidate_score/len(word_list)
         return keyword_candidates,keyword_candidates_mean
 
-    def run(self,doc):
-        sentences=self.seperate_sentence(doc)
+    def run(self,text):
+        sentences=self.seperate_sentence(text)
         word_scores=self.cal_score(sentences)
         keywords_candidates,keywords_candidates_mean=self.generate_candidate_keyword_score(sentences,word_scores)
         sorted_keywords=sorted(keywords_candidates.items(),key=lambda d:d[1],reverse=True)
