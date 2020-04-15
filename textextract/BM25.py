@@ -1,22 +1,26 @@
 import codecs
 import math
+import jieba
 class BM25_Model:
-    def __init__(self,corpus_filename=None,stopwords_filename=None):
+    def __init__(self,doc_list,stopwords_filename=None):
         if stopwords_filename:
             stopword_file = codecs.open(stopwords_filename, "r", encoding='utf-8')
             self.stopwords = set([line.strip() for line in stopword_file])
-        if corpus_filename:
-            pass ##TODO
-        self.docs_num = len(self.docs)#文档数
-        self.avg_doc_len = sum([len(doc) + 0.0 for doc in self.docs]) / self.docs_num ##平均文档长度
+
+
+        self.docs_num = len(doc_list)#文档数
+        self.doc_len=[0]*len(doc_list)
+        self.avg_doc_len = sum([len(doc) + 0.0 for doc in doc_list]) / self.docs_num ##平均文档长度
         self.doc_dict = []
         self.df={} # 存储每个词及出现了该词的文档数量
         self.idf={} #存储每个词的idf
         self.k1=1.5
         self.b=0.75
 
-        for doc in self.docs:
+        for i,doc in enumerate(doc_list):
+            self.doc_len[i]=len(doc)
             temp={}
+            doc=list(jieba.cut(doc))
             for word in doc:
                 if word not in self.stopwords:
                     temp[word]=temp.get(word,0)+1
@@ -28,14 +32,14 @@ class BM25_Model:
             self.idf[k]=math.log(self.docs_num-v+0.5)-math.log(v+0.5)
 
 
-    def cal_sim(self,query):
+    def run(self,query):
         scores={}
         def sim(query,idx):
             score=0
             for word in query:
                 if word not in self.doc_dict[idx]:
                     continue
-                d=len(self.docs[idx])
+                d=len(self.doc_len[idx])
                 score += (self.idf[word] * self.doc_dict[idx][word] * (self.k1 + 1)
                           / (self.doc_dict[idx][word] + self.k1 * (1 - self.b + self.b * d
                                                              / self.avg_doc_len)))

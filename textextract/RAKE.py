@@ -65,8 +65,8 @@ class RAKE:
             keyword_candidates_mean[phrase]=candidate_score/len(word_list)
         return keyword_candidates,keyword_candidates_mean
 
-    def run(self,text):
-        sentences=self.seperate_sentence(text)
+    def run(self,doc):
+        sentences=self.seperate_sentence(doc)
         word_scores=self.cal_score(sentences)
         keywords_candidates,keywords_candidates_mean=self.generate_candidate_keyword_score(sentences,word_scores)
         sorted_keywords=sorted(keywords_candidates.items(),key=lambda d:d[1],reverse=True)

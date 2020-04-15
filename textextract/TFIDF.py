@@ -3,7 +3,7 @@ import re
 import jieba
 import math
 class TFIDF:
-    def __init__(self,corpus_filename=None,stopwords_filename=None,idf_threshold=1.5):
+    def __init__(self,doc_list,stopwords_filename=None,idf_threshold=1.5):
         self.Words=set() ##词表
         self.num_docs=0  ##
         self.idf_threshold=idf_threshold
@@ -11,10 +11,9 @@ class TFIDF:
         if stopwords_filename:
             stopword_file = codecs.open(stopwords_filename, "r", encoding='utf-8')
             self.stopwords = set([line.strip() for line in stopword_file])
-        if corpus_filename:
-            corpus=codecs.open(corpus_filename,'r',encoding='utf-8')
-            for input in corpus:
-                self.add_document(input.strip())
+
+        for doc in doc_list:
+            self.add_document(doc.strip())
 
     def tokenize(self,str):
         return list(jieba.cut(str))
@@ -40,7 +39,7 @@ class TFIDF:
             return self.idf_threshold
         return math.log(float(1+self.num_docs/(1+self.term_num_docs[term])))
 
-    def get_tfidf(self,doc):
+    def run(self,doc):
         words=[]
         for str in self.get_tokens(doc):
             words.extend(self.tokenize(str))

@@ -6,22 +6,14 @@ import jieba
 import re
 
 class TextRank_MultiWindow:
-    def __init__(self,corpus_filename=None,min_window=2,max_window=5,stopwords_filename=None):
+    def __init__(self,min_window=2,max_window=5,stopwords_filename=None):
         self.min_window = min_window
         self.max_window=max_window
-        inputs=[]
         if stopwords_filename:
             stopword_file = codecs.open(stopwords_filename, "r", encoding='utf-8')
             self.stopwords = set([line.strip() for line in stopword_file])
-        if corpus_filename:
-            corpus = codecs.open(corpus_filename, 'r', encoding='utf-8')
 
-            for sentence in corpus:
-                S = []
-                for str in self.get_tokens(sentence.strip()):
-                    S.extend(self.tokenize(str))
-                inputs.append(S)
-        self.keywords=self.get_keywords(inputs)
+
 
     def tokenize(self,str):
         return list(jieba.cut(str))
@@ -82,3 +74,12 @@ class TextRank_MultiWindow:
         sorted_res=sorted(res.items(),key=lambda item:item[1],reverse=True)
         return sorted_res
 
+    def run(self,doc_list):
+        inputs=[]
+        for sentence in doc_list:
+            S = []
+            for str in self.get_tokens(sentence.strip()):
+                S.extend(self.tokenize(str))
+            inputs.append(S)
+        outputs=self.get_keywords(inputs)
+        return outputs

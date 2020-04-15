@@ -6,29 +6,17 @@ import re
 import jieba
 
 class TextRank:
-    def __init__(self,corpus_filename=None,window=2,stopwords_filename=None):
+    def __init__(self,window=2,stopwords_filename=None):
         self.window=window
         if stopwords_filename:
             stopword_file = codecs.open(stopwords_filename, "r", encoding='utf-8')
             self.stopwords = set([line.strip() for line in stopword_file])
-        inputs=[]
-        if corpus_filename:
-            corpus = codecs.open(corpus_filename, 'r', encoding='utf-8')
 
-            for sentence in corpus:
-                S=[]
-                for str in self.get_tokens(sentence.strip()):
-                    S.extend(self.tokenize(str))
-                inputs.append(S)
-
-
-        self.keywords=self.get_keywords(inputs)
-        self.keysentence=self.get_key_sentences(inputs)
     def tokenize(self,str):
         return list(jieba.cut(str))
     def get_tokens(self,str):#保留完整的URL
         return re.findall(r"<a.*?/a>|<[^\>]*>|[\w'@#]+", str.lower())
-    def get_keywords(self,corpus):
+    def get_keywords(self,doc_list):
 
     #1. 把给定的文本T按照完整句子进行分割，即
     #2. 对于每个句子，进行分词和词性标注处理，并过滤掉停用词，只保留指定词性的单词，如名词、动词、形容词，即，其中是保留后的候选关键词。
@@ -40,7 +28,7 @@ class TextRank:
         word2idx={}
         idx2word={}
         idx=0
-        for word_list in corpus:
+        for word_list in doc_list:
             for word in word_list:
                 if word not in word2idx and word not in self.stopwords:
                     word2idx[word]=idx
@@ -58,7 +46,7 @@ class TextRank:
                 for r in zip(word_list,word_list2):
                     yield r
         graph=np.zeros((idx,idx))
-        for word_list in corpus:
+        for word_list in doc_list:
             for w1,w2 in get_connection(word_list):
                 if w1 in word2idx and w2 in word2idx:
                     idx1=word2idx[w1]
@@ -96,3 +84,16 @@ class TextRank:
         for idx,score in sorted_scores:
             res.append((''.join(corpus[idx]),score))
         return res
+    def run(self,doc_list,keywords_flag=True):
+        inputs = []
+        for doc in doc_list:
+            S = []
+            for str in self.get_tokens(doc.strip()):
+                S.extend(self.tokenize(str))
+            inputs.append(S)
+
+        if keywords_flag:
+            outputs = self.get_keywords(inputs)
+        else:
+            outputs = self.get_key_sentences(inputs)
+        return outputs

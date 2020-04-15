@@ -12,21 +12,20 @@ def seg_to_list(sentence, pos=False):
         seg_list = jp.cut(sentence)
     return seg_list
 
-def get_stopword_list(stopword_file):
-    L=codecs.open(stopword_file,'r',encoding='utf-8')
-    return [word.strip() for word in L]
+
 
 
 
 
 class LSIModel:
-    def __init__(self,corpus_filename=None,num_topics=7,stopwords_filename=None):
+    def __init__(self,doc_list,num_topics=7,stopwords_filename=None):
         #读取停用词
-        L = codecs.open(stopwords_filename, 'r', encoding='utf-8')
-        self.stopsword=[word.strip() for word in L]
+        if stopwords_filename:
+            L = codecs.open(stopwords_filename, 'r', encoding='utf-8')
+            self.stopsword=[word.strip() for word in L]
         #读取语料
-        corpus_list=codecs.open(corpus_filename,'r',encoding='utf-8')
-        doc_list=[self.word_filter(seg_to_list(text.strip())) for text in corpus_list]
+
+        doc_list=[self.word_filter(seg_to_list(doc.strip())) for doc in doc_list]
 
         self.dictionary=corpora.Dictionary(doc_list)
         corpus=[self.dictionary.doc2bow(doc) for doc in doc_list]
