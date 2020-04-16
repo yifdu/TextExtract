@@ -5,7 +5,7 @@ import codecs
 import jieba
 import re
 
-class TextRank_MultiWindow:
+class TextRank_MultiWindow_Model:
     def __init__(self,min_window=2,max_window=5,stopwords_filename=None):
         self.min_window = min_window
         self.max_window=max_window
@@ -52,13 +52,18 @@ class TextRank_MultiWindow:
                     yield r
 
         res_dict = {}
+
         for window in range(self.min_window,self.max_window+1):
             graph = np.zeros((idx, idx))
+
             for word_list in corpus:
+
+
                 for w1,w2 in get_connection(word_list,window):
                     if w1 in word2idx and w2 in word2idx:
                         idx1=word2idx[w1]
                         idx2=word2idx[w2]
+
                         graph[idx1][idx2]=1.0
                         graph[idx2][idx1]=1.0
 
@@ -66,8 +71,8 @@ class TextRank_MultiWindow:
             scores=nx.pagerank(new_graph)
             sorted_scores=sorted(scores.items(),key=lambda item:item[1],reverse=True)
 
-            for idx,score in sorted_scores:
-                res_dict.setdefault(idx2word[idx],[]).append(score)
+            for j,score in sorted_scores:
+                res_dict.setdefault(idx2word[j],[]).append(score)
         res={}
         for key,values in res_dict.items():
             res[key]=np.average(values)

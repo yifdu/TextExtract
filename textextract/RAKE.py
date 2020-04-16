@@ -9,7 +9,7 @@ def is_number(s):
     except ValueError:
         return False
 
-class RAKE:
+class RAKE_Model:
     def __init__(self,stopwords_filename=None):
         if stopwords_filename:
             stopword_file = codecs.open(stopwords_filename, "r", encoding='utf-8')
@@ -62,7 +62,8 @@ class RAKE:
             for word in word_list:
                 candidate_score+=word_score[word]
             keyword_candidates[phrase]=candidate_score
-            keyword_candidates_mean[phrase]=candidate_score/len(word_list)
+            if len(word_list)!=0:
+                keyword_candidates_mean[phrase]=candidate_score/len(word_list)
         return keyword_candidates,keyword_candidates_mean
 
     def run(self,doc):

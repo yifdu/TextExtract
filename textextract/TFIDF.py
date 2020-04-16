@@ -2,7 +2,7 @@ import codecs
 import re
 import jieba
 import math
-class TFIDF:
+class TFIDF_Model:
     def __init__(self,doc_list,stopwords_filename=None,idf_threshold=1.5):
         self.Words=set() ##词表
         self.num_docs=0  ##

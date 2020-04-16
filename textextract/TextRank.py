@@ -5,7 +5,7 @@ import codecs
 import re
 import jieba
 
-class TextRank:
+class TextRank_Model:
     def __init__(self,window=2,stopwords_filename=None):
         self.window=window
         if stopwords_filename:

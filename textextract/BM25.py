@@ -7,7 +7,7 @@ class BM25_Model:
             stopword_file = codecs.open(stopwords_filename, "r", encoding='utf-8')
             self.stopwords = set([line.strip() for line in stopword_file])
 
-
+        self.docs=doc_list
         self.docs_num = len(doc_list)#文档数
         self.doc_len=[0]*len(doc_list)
         self.avg_doc_len = sum([len(doc) + 0.0 for doc in doc_list]) / self.docs_num ##平均文档长度
@@ -39,14 +39,14 @@ class BM25_Model:
             for word in query:
                 if word not in self.doc_dict[idx]:
                     continue
-                d=len(self.doc_len[idx])
+                d=self.doc_len[idx]
                 score += (self.idf[word] * self.doc_dict[idx][word] * (self.k1 + 1)
                           / (self.doc_dict[idx][word] + self.k1 * (1 - self.b + self.b * d
                                                              / self.avg_doc_len)))
             return score
         for idx in range(self.docs_num):
             score=sim(query,idx)
-            scores[idx]=score
+            scores[self.docs[idx]]=score
         sorted_scores=sorted(scores.items(),key=lambda d:d[1],reverse=True)
         return sorted_scores
 
