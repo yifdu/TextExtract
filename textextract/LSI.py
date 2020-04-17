@@ -18,7 +18,7 @@ def seg_to_list(sentence, pos=False):
 
 
 class LSIModel:
-    def __init__(self,doc_list,num_topics=7,stopwords_filename=None):
+    def __init__(self,doc_list,num_topics=7,stopwords_filename=None,TFIDF_tag=True):
         #读取停用词
         if stopwords_filename:
             L = codecs.open(stopwords_filename, 'r', encoding='utf-8')
@@ -26,15 +26,18 @@ class LSIModel:
         #读取语料
 
         doc_list=[self.word_filter(seg_to_list(doc.strip())) for doc in doc_list]
-
+        self.TFIDF_tag=TFIDF_tag
         self.dictionary=corpora.Dictionary(doc_list)
         corpus=[self.dictionary.doc2bow(doc) for doc in doc_list]
 
         self.tfidf_model=models.TfidfModel(corpus)
         corpus_tfidf=self.tfidf_model[corpus]
 
+        if TFIDF_tag:
+            self.model=models.LsiModel(corpus_tfidf,id2word=self.dictionary,num_topics=num_topics)
+        else:
+            self.model=models.LsiModel(corpus,id2word=self.dictionary,num_topics=num_topics)
 
-        self.model=models.LsiModel(corpus_tfidf,id2word=self.dictionary,num_topics=num_topics)
         word_dic=[]
         for doc in doc_list:
             word_dic.extend(doc)
@@ -66,7 +69,10 @@ class LSIModel:
         return wordtopic_dict
 
     def get_simword(self,word_list):
-        sentcorpus=self.tfidf_model[self.dictionary.doc2bow(word_list)]
+        if self.TFIDF_tag:
+            sentcorpus=self.tfidf_model[self.dictionary.doc2bow(word_list)]
+        else:
+            sentcorpus=self.dictionary.doc2bow(word_list)
         senttopic=self.model[sentcorpus]
 
         def cal_similarity(w1,w2):

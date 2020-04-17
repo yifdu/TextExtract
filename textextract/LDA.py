@@ -17,23 +17,37 @@ def seg_to_list(sentence, pos=False):
 
 
 class LDAModel:
-    def __init__(self,doc_list,num_topics=7,stopwords_filename=None):
+    def __init__(self,doc_list,num_topics=7,stopwords_filename=None,TFIDF_tag=True):
         #读取停用词
         if stopwords_filename:
             L = codecs.open(stopwords_filename, 'r', encoding='utf-8')
             self.stopsword=[word.strip() for word in L]
         #读取语料
-
+        self.num_topics=num_topics
         doc_list=[self.word_filter(seg_to_list(doc.strip())) for doc in doc_list]
-
+        self.TFIDF_tag=TFIDF_tag
         self.dictionary=corpora.Dictionary(doc_list)
         corpus=[self.dictionary.doc2bow(doc) for doc in doc_list]
 
         self.tfidf_model=models.TfidfModel(corpus)
-        corpus_tfidf=self.tfidf_model[corpus]
+        corpus_tfidf=self.tfidf_model[corpus]#用来调整语料中不同词的词频，将那些在所有文档中都出现的高频词的词频降低
+        self.distribution={}
+        if TFIDF_tag:
+            self.model=models.LdaModel(corpus_tfidf,id2word=self.dictionary,num_topics=num_topics)
+        else:
+            self.model=models.LdaModel(corpus,id2word=self.dictionary,num_topics=num_topics)
+        for topic_id,topics_word in self.model.show_topics(num_words=len(self.dictionary)):
+            topics_word_list=topics_word.split('+')
+            A={}
+            for word_score in topics_word_list:
+                score,word=word_score.strip().split('*')
+                score=float(score)
+                word=word.strip("")
+                A[word[1:-1]]=score
+            self.distribution[topic_id]=A
 
 
-        self.model=models.LdaModel(corpus_tfidf,id2word=self.dictionary,num_topics=num_topics)
+
         word_dic=[]
         for doc in doc_list:
             word_dic.extend(doc)
@@ -65,7 +79,10 @@ class LDAModel:
         return wordtopic_dict
 
     def get_simword(self,word_list):
-        sentcorpus=self.tfidf_model[self.dictionary.doc2bow(word_list)]
+        if self.TFIDF_tag:
+            sentcorpus=self.tfidf_model[self.dictionary.doc2bow(word_list)]
+        else:
+            sentcorpus=self.dictionary.doc2bow(word_list)
         senttopic=self.model[sentcorpus]
 
         def cal_similarity(w1,w2):
@@ -84,6 +101,12 @@ class LDAModel:
                 continue
             sim_dic[k]=cal_similarity(v,senttopic)
         return sorted(sim_dic.items(),key=lambda d:d[1],reverse=True)
+
+    def show_distribution(self,topic_id=-1):
+        if topic_id>=0 and topic_id<self.num_topics:
+            print(self.distribution[topic_id])
+        else:
+            print(self.distribution)
 
     def run(self,text):
         word_list=self.word_filter(seg_to_list(text.strip()))
