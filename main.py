@@ -5,6 +5,7 @@ from textextract.LSI import LSIModel
 from textextract.TFIDF import TFIDF_Model
 from textextract.TextRank import TextRank_Model
 from textextract.TextRank_MultiWindow import TextRank_MultiWindow_Model
+from textextract.TextRank_with_Title import TextRank_with_Title_Model
 from textextract.BM25 import BM25_Model
 from textextract.RAKE import RAKE_Model
 import codecs
@@ -71,7 +72,7 @@ if __name__=="__main__":
         model4 = LDAModel(l, stopwords_filename='./Data/stopWord.txt', TFIDF_tag=False)
         model5 = LSIModel(l, stopwords_filename='./Data/stopWord.txt', TFIDF_tag=False)
         model6 = BM25_Model(l, stopwords_filename='./Data/stopWord.txt')
-
+        model7=TextRank_with_Title_Model(stopwords_filename='./Data/stopWord.txt')
         print("TFIDF结果:")
 
         print(model1.run(text))
@@ -79,6 +80,8 @@ if __name__=="__main__":
         print(model2.run(l))
         print("TextRankMultiWiindow结果:")
         print(model3.run(l))
+        print("TextRankwithTitle结果:")
+        print(model7.run(l, doc_list[key]['title']))
         print("LDA结果:")
         print(model4.run(text))
         print("LSI结果:")
@@ -87,6 +90,8 @@ if __name__=="__main__":
         print(doc_list[key]['res'])
         print('title:')
         print(doc_list[key]['title'])
+
+
         if i>5:
             break
 
