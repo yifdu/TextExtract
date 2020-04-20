@@ -8,6 +8,7 @@ from textextract.TextRank_MultiWindow import TextRank_MultiWindow_Model
 from textextract.TextRank_with_Title import TextRank_with_Title_Model
 from textextract.BM25 import BM25_Model
 from textextract.RAKE import RAKE_Model
+from textextract.KeyGraph import KeyGraph_Model
 import codecs
 
 def load_DC(all_docs='./Data/DC/all_docs.txt',train_file='./Data/DC/train_docs_keywords.txt'):
@@ -72,7 +73,8 @@ if __name__=="__main__":
         model4 = LDAModel(l, stopwords_filename='./Data/stopWord.txt', TFIDF_tag=False)
         model5 = LSIModel(l, stopwords_filename='./Data/stopWord.txt', TFIDF_tag=False)
         model6 = BM25_Model(l, stopwords_filename='./Data/stopWord.txt')
-        model7=TextRank_with_Title_Model(stopwords_filename='./Data/stopWord.txt')
+        model7= TextRank_with_Title_Model(stopwords_filename='./Data/stopWord.txt')
+        model8=KeyGraph_Model(stopwords_filename='./Data/stopWord.txt')
         print("TFIDF结果:")
 
         print(model1.run(text))
@@ -86,6 +88,10 @@ if __name__=="__main__":
         print(model4.run(text))
         print("LSI结果:")
         print(model5.run(text))
+
+        print('KeyGraph结果:')
+        print(model8.run(l))
+
         print("True结果:")
         print(doc_list[key]['res'])
         print('title:')

@@ -12,8 +12,8 @@ import re
 ##2.抽取支柱:计算key(w),这是一个概率值，考虑G中所有的地基时w出现的概率
 ##3.抽取屋顶:即关键字抽取
 class KeyGraph_Model:
-    def __init__(self,M_1=20,M_2=12,stopwords_filename=None):
-        self.M_1=M_1
+    def __init__(self,threshold1=1,M_2=12,stopwords_filename=None):
+        self.threshold1=threshold1
         self.M_2=M_2
         if stopwords_filename:
             stopword_file = codecs.open(stopwords_filename, "r", encoding='utf-8')
@@ -39,23 +39,28 @@ class KeyGraph_Model:
                 S.extend(self.tokenize(str))
             inputs.append(S)
 
-        sentence_num=len(doc_list)
+        sentence_num=len(doc_list)#句子个数
 
-        word_set={}
+        word_set={}##（词，句）倒排表
         for i,sentence in enumerate(inputs):
             for word in sentence:
                 word_set[(word,i)]=word_set.get((word,i),0)+1
 
 
-        words={}
+        words={}#词的倒排表
         for word, times in word_set.items():
             words[word[0]] = words.get(word[0], 0) + times
 
         sorted_words=sorted(words.items(),key=lambda x:x[1],reverse = True)
-        temp=sorted_words[:self.M_1]##过滤点数
+
         HighFreq=[]
-        for (word,times) in temp:
-            HighFreq.append(word)
+        for word,times in sorted_words:
+            if times>self.threshold1:
+                HighFreq.append(word)
+            else:
+                break
+        nodes_num=len(HighFreq)
+
         co_occurence={}
         for word1, times1 in word_set.items():
             for word2, times2 in word_set.items():
@@ -69,15 +74,15 @@ class KeyGraph_Model:
             for word2 in HighFreq:
                 if (word1,word2) in co_occurence:
                     co_set[(word1, word2)] = co_occurence[(word1, word2)]
-                elif (word2,word1) in co_occurence:
-                    co_set[(word2, word1)] = co_occurence[(word2, word1)]
+
 
         temp = []
         for pairs, co in co_set.items():
             temp.append((co, pairs))
 
         temp.sort(reverse=True)
-        temp= temp[:self.M_1 - 1]  ##过滤前m_1-1个（边数)
+
+        temp= temp[:nodes_num- 1]  ##过滤前m_1-1个（边数)    ##设置阈值
 
         links = []  ##构建连接对
         for (co, pairs) in temp:
@@ -96,19 +101,20 @@ class KeyGraph_Model:
         graphs = list(nx.connected_component_subgraphs(G))  # 得到连接的子图
         g_s_set = {}
         # g_s_set:{(graph_num,sentence_num):g_s}
+
         #图与句子连接
         for word, times in word_set.items():
             for i in range(len(graphs)):
                 if word[0] not in graphs[i].nodes(): continue
-                g_s_set[(i, word[1])] = g_s_set.get((i, word[1]), 0) + times  ##该子图句子的频数
+                g_s_set[(i, word[1])] = g_s_set.get((i, word[1]), 0) + times  ## 建立子图和句子的连接关系强度
         based_set = {}
         # based_set:{(word,graph_num):based}
-        for i in range(len(graphs)):
+        for i in range(len(graphs)):#子图
             for word, times in word_set.items():
                 if word[0] in graphs[i].nodes():
                     g_minus_w = g_s_set[(i, word[1])] - times
                 else:
-                    g_minus_w = times
+                    g_minus_w = times  ##存在么？
                 based = times * g_minus_w  #####
                 based_set[(word[0], i)] = based_set.get((word[0], i), 0) + based
         neighbors_set = {}
@@ -119,7 +125,8 @@ class KeyGraph_Model:
                     g_minus_w = g_s_set[(i, word[1])] - times
                 else:
                     g_minus_w = times
-                neighbors_set[i] = neighbors_set.get(i, 0) + g_minus_w
+
+                neighbors_set[i] = neighbors_set.get(i, 0) + g_minus_w*times
         key_set = {}
         tem_set = {}
 
@@ -141,7 +148,7 @@ class KeyGraph_Model:
 
         HighKey = []
         for (key, word) in tem:
-            HighKey.append(word)
+            HighKey.append(word)##作为keynode
         keygraph = foundations
         for word in HighKey:
             if word not in keygraph:
@@ -150,22 +157,24 @@ class KeyGraph_Model:
         graphs = list(nx.connected_component_subgraphs(G))
         new_links = []
         for word in HighKey:
+            mark=-1
             for i in range(len(graphs)):
                 if word in graphs[i].nodes():
                     mark = i
             for i in range(len(graphs)):
                 tem = []
                 if i == mark: continue
-                for node in graphs[i].nodes():
-                    if (word, node) in co_occurence:
+                for node in graphs[i].nodes(): ##每个子图上的节点
+                    if (word, node) in co_occurence: ##从非高频的共现对中找
                         column = co_occurence[(word, node)]
                         tem.append((column, (word, node)))
                 tem.sort(reverse=True)
-                new_links.append(tem[0][1])
+                for times,pair in tem:
+                    new_links.append(pair)
+
         for (word1, word2) in new_links:
             keygraph[word1].append(word2)
             keygraph[word2].append(word1)
-
         c_set = {}
         # c_set:{(word1,word2):column}
         for word1 in HighKey:
@@ -180,21 +189,13 @@ class KeyGraph_Model:
         tem = []
         for pair, c in tem_set.items():
             tem.append((c, pair))
+
         tem.sort(reverse=True)
-        tem = tem[:m_2]
+
         keyword = []
 
         for (c, word) in tem:
             keyword.append(word)
-        print('Keywords:')
-        for word in keyword:
-            print(word)
+
         return keyword
-
-
-if __name__=="__main__":
-    text = '本发明涉及半倾斜货箱卸载系统。一变型可包括一种产品，包括：运输工具，其包括具有倾斜部分和非倾斜部分的货箱，该运输工具具有第一纵向侧和相对的第二纵向侧，倾斜部分被构造和布置成使其最靠近第二纵向侧的一侧可相对于其最靠近第一纵向侧的相对侧降低。一变型可包括一种方法，包括：提供包括具有倾斜部分和非倾斜部分的货箱的运输工具，该运输工具具有第一纵向侧和相对的第二纵向侧，倾斜部分被构造和布置成使其最靠近第二纵向侧的一侧可相对于其最靠近第一纵向侧的相对侧降低，货箱具有前部和后部，倾斜部分最靠近货箱的前部，非倾斜部分邻近倾斜部分；将货物从货箱的后部装载到货箱上；以及将货物从货箱卸载，包括使货箱的倾斜部分倾斜。'
-    model=KeyGraph_Model(stopwords_filename='C:/Users/yif/PycharmProjects/TextExtract/Data/stopWord.txt')
-    doc_list=text.split('。')
-    model.run(doc_list)
 
