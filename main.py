@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from  textextract.LDA import LDAModel
-from textextract.LSI import LSIModel
+from  textextract.LDA import TopicModel
 from textextract.TFIDF import TFIDF_Model
 from textextract.TextRank import TextRank_Model,TextRank_MultiWindow_Model,TextRank_with_Title_Model
 from textextract.BM25 import BM25_Model
@@ -68,8 +67,8 @@ if __name__=="__main__":
         model1 = TFIDF_Model(doc_list=l, stopwords_filename='./Data/stopWord.txt')
         model2 = TextRank_Model(stopwords_filename='./Data/stopWord.txt')
         model3 = TextRank_MultiWindow_Model(stopwords_filename='./Data/stopWord.txt')
-        model4 = LDAModel(l, stopwords_filename='./Data/stopWord.txt', TFIDF_tag=False)
-        model5 = LSIModel(l, stopwords_filename='./Data/stopWord.txt', TFIDF_tag=False)
+        model4 = TopicModel(l, model_name='LDA', stopwords_filename='./Data/stopWord.txt', TFIDF_tag=False)
+        model5 = TopicModel(l, model_name='LSI', stopwords_filename='./Data/stopWord.txt', TFIDF_tag=False)
         model6 = BM25_Model(l, stopwords_filename='./Data/stopWord.txt')
         model7= TextRank_with_Title_Model(stopwords_filename='./Data/stopWord.txt')
         model8=KeyGraph_Model(stopwords_filename='./Data/stopWord.txt')
