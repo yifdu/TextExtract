@@ -2,7 +2,7 @@
 
 from  textextract.LDA import LDAModel
 from textextract.LSI import LSIModel
-from textextract.TFIDF import TFIDF_Model
+from textextract.tfidf import TFIDF_Model
 from textextract.TextRank import TextRank_Model
 from textextract.TextRank_MultiWindow import TextRank_MultiWindow_Model
 from textextract.TextRank_with_Title import TextRank_with_Title_Model
