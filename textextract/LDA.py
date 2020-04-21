@@ -16,8 +16,8 @@ def seg_to_list(sentence, pos=False):
 
 
 
-class LDAModel:
-    def __init__(self,doc_list,num_topics=7,stopwords_filename=None,TFIDF_tag=True):
+class TopicModel:
+    def __init__(self,doc_list,num_topics=7,model_name='LDA',stopwords_filename=None,TFIDF_tag=True):
         #读取停用词
         if stopwords_filename:
             L = codecs.open(stopwords_filename, 'r', encoding='utf-8')
@@ -33,9 +33,19 @@ class LDAModel:
         corpus_tfidf=self.tfidf_model[corpus]#用来调整语料中不同词的词频，将那些在所有文档中都出现的高频词的词频降低
         self.distribution={}
         if TFIDF_tag:
-            self.model=models.LdaModel(corpus_tfidf,id2word=self.dictionary,num_topics=num_topics)
+            if model_name.lower()=='lda':
+                self.model = models.LdaModel(corpus_tfidf,id2word=self.dictionary,num_topics=num_topics)
+            elif model_name=='lsi':
+                self.model = models.LsiModel(corpus_tfidf, id2word=self.dictionary, num_topics=num_topics)
+            else:
+                raise Exception("Wrong model_name")
         else:
-            self.model=models.LdaModel(corpus,id2word=self.dictionary,num_topics=num_topics)
+            if model_name.lower()=='lda':
+                self.model = models.LdaModel(corpus,id2word=self.dictionary,num_topics=num_topics)
+            elif model_name.lower=='lsi':
+                self.model = models.LsiModel(corpus, id2word=self.dictionary, num_topics=num_topics)
+            else:
+                raise Exception("Wrong model_name")
         for topic_id,topics_word in self.model.show_topics(num_words=len(self.dictionary)):
             topics_word_list=topics_word.split('+')
             A={}
@@ -45,8 +55,6 @@ class LDAModel:
                 word=word.strip("")
                 A[word[1:-1]]=score
             self.distribution[topic_id]=A
-
-
 
         word_dic=[]
         for doc in doc_list:
@@ -73,7 +81,10 @@ class LDAModel:
         wordtopic_dict={}
         for word in word_dict:
             single_list = [word]
-            wordcorpus = self.tfidf_model[self.dictionary.doc2bow(single_list)]
+            if self.TFIDF_tag:
+                wordcorpus = self.tfidf_model[self.dictionary.doc2bow(single_list)]
+            else:
+                wordcorpus = self.dictionary.doc2bow(single_list)
             wordtopic=self.model[wordcorpus]
             wordtopic_dict[word]=wordtopic
         return wordtopic_dict

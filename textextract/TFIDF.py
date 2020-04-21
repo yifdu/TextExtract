@@ -18,7 +18,7 @@ class TFIDF_Model:
     def tokenize(self, s):
         return list(jieba.cut(s))
     def get_tokens(self, str):#保留完整的URL
-        return re.findall(r"<a.*?/a>|<[^\>]*>|[\w'@#]+", str.lower(str))
+        return re.findall(r"<a.*?/a>|<[^\>]*>|[\w'@#]+", str.lower())
 
     def add_document(self, inputs):
         self.num_docs += 1

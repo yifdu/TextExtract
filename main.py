@@ -2,10 +2,8 @@
 
 from  textextract.LDA import LDAModel
 from textextract.LSI import LSIModel
-from textextract.tfidf import TFIDF_Model
-from textextract.TextRank import TextRank_Model
-from textextract.TextRank_MultiWindow import TextRank_MultiWindow_Model
-from textextract.TextRank_with_Title import TextRank_with_Title_Model
+from textextract.TFIDF import TFIDF_Model
+from textextract.TextRank import TextRank_Model,TextRank_MultiWindow_Model,TextRank_with_Title_Model
 from textextract.BM25 import BM25_Model
 from textextract.RAKE import RAKE_Model
 from textextract.KeyGraph import KeyGraph_Model
