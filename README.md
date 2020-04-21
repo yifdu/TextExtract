@@ -1,14 +1,21 @@
 # TextExtract
 Model:
-1. TF-IDF
-2. TextRank
-3. TextRank with Multiple Window
-4. LSI
-5. LDA
-6. RAKE
-7. BM25
+- [x] TF-IDF
+- [x] TextRank(三种形式)
+- [x] TopicModel(LDA、LSI)
+- [ ] RAKE
+- [ ] Maui(https://www.airpair.com/nlp/keyword-extraction-tutorial)
+- [x] BM25
 
-
+| Task     | Datasets| vocabulary |Model                   |Score|
+|----------|---------|------------|------------------------|-----|
+|          |         |            |TFIDF                   |     |
+|          |         |            |TextRank                |     |
+|          |         |            |TextRank_withMultiWindow|     |
+|          |         |            |TextRank_withTitle      |     |
+|          |         |            |LDA                     |     |
+|          |         |            |LSI                     |     |
+|          |         |            |BM25                    |     |
+|          |         |            |KeyProcessor            |     |
 
 参考文献:https://github.com/topics/keyword-extraction?l=python
-
