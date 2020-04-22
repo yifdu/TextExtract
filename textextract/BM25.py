@@ -22,7 +22,7 @@ class BM25_Model:
             temp={}
             doc=list(jieba.cut(doc))
             for word in doc:
-                if word not in self.stopwords:
+                if word not in self.stopwords and len(word)>1:
                     temp[word]=temp.get(word,0)+1
             self.doc_dict.append(temp)
             for k in temp.keys():

@@ -25,7 +25,7 @@ class RAKE_Model:
         words=[]
         phrase=list(jieba.cut(phrase))
         for word in phrase:
-            if len(word)>min_word_return_size and not is_number(word) and word not in self.stopwords:
+            if len(word)>min_word_return_size and not is_number(word) and word not in self.stopwords and len(word)>1:
                 words.append(word)
         return words
 

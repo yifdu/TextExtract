@@ -23,7 +23,7 @@ class KeyGraph_Model:
         s=list(jieba.cut(str))
         res=[]
         for word in s:
-            if word not in self.stopwords:
+            if word not in self.stopwords and len(word)>1:
                 res.append(word)
         return res
 
@@ -136,7 +136,7 @@ class KeyGraph_Model:
                 neighbors = neighbors_set[i]
                 tem = 1 - based / neighbors
                 tem_set[word[0]] = tem_set.get(word[0], 1) * tem
-            key_set[word[0]] = 1 - tem_set[word[0]]
+            key_set[word[0]] = 1 - tem_set.get(word[0],0)
         m_2 = min(self.M_2, len(words))  ##过滤
 
         tem = []

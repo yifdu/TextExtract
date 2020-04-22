@@ -35,14 +35,14 @@ class TopicModel:
         if TFIDF_tag:
             if model_name.lower()=='lda':
                 self.model = models.LdaModel(corpus_tfidf,id2word=self.dictionary,num_topics=num_topics)
-            elif model_name=='lsi':
+            elif model_name.lower()=='lsi':
                 self.model = models.LsiModel(corpus_tfidf, id2word=self.dictionary, num_topics=num_topics)
             else:
                 raise Exception("Wrong model_name")
         else:
             if model_name.lower()=='lda':
                 self.model = models.LdaModel(corpus,id2word=self.dictionary,num_topics=num_topics)
-            elif model_name.lower=='lsi':
+            elif model_name.lower()=='lsi':
                 self.model = models.LsiModel(corpus, id2word=self.dictionary, num_topics=num_topics)
             else:
                 raise Exception("Wrong model_name")

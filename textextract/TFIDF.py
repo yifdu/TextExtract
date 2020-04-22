@@ -33,7 +33,7 @@ class TFIDF_Model:
             else:
                 self.term_num_docs[word] = 1
     def get_idf(self, term):
-        if term in self.stopwords:
+        if term in self.stopwords and len(term)<2:
             return 0
         if not term in self.term_num_docs:
             return self.idf_threshold

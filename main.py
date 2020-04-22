@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 
-from  textextract.LDA import TopicModel
+from  textextract.Topic import TopicModel
 from textextract.TFIDF import TFIDF_Model
 from textextract.TextRank import TextRank_Model,TextRank_MultiWindow_Model,TextRank_with_Title_Model
 from textextract.BM25 import BM25_Model
 from textextract.RAKE import RAKE_Model
 from textextract.KeyGraph import KeyGraph_Model
 import codecs
+from Evaluate import Eval
 
 def load_DC(all_docs='./Data/DC/all_docs.txt',train_file='./Data/DC/train_docs_keywords.txt'):
     A=codecs.open(all_docs,encoding='utf-8')
@@ -49,13 +50,21 @@ text1 = '6月19日,《2012年度“中国爱心城市”公益活动新闻发布
 
 text2= '本发明涉及半倾斜货箱卸载系统。一变型可包括一种产品，包括：运输工具，其包括具有倾斜部分和非倾斜部分的货箱，该运输工具具有第一纵向侧和相对的第二纵向侧，倾斜部分被构造和布置成使其最靠近第二纵向侧的一侧可相对于其最靠近第一纵向侧的相对侧降低。一变型可包括一种方法，包括：提供包括具有倾斜部分和非倾斜部分的货箱的运输工具，该运输工具具有第一纵向侧和相对的第二纵向侧，倾斜部分被构造和布置成使其最靠近第二纵向侧的一侧可相对于其最靠近第一纵向侧的相对侧降低，货箱具有前部和后部，倾斜部分最靠近货箱的前部，非倾斜部分邻近倾斜部分；将货物从货箱的后部装载到货箱上；以及将货物从货箱卸载，包括使货箱的倾斜部分倾斜。'
 text= '林志颖老婆深夜敷面膜，睫毛太长好吓人早年林志颖带kimi上《爸爸去哪儿》的时候，当时遮遮掩掩的林志颖老婆低调探班，总让人觉得格外神秘，大概是特别不喜欢在公众面前曝光自己日常的那种人。可能这么些年过去，心态不断调整过了，至少在微博上，陈若仪越来越放得开，晒自己带娃照顾双子星的点滴，也晒日常自己的护肤心得，时不时安利一些小东西。都快晚上十点半，睡美容觉的最佳时候，结果才带完一天娃的陈若仪还是不忘先保养自己，敷起了面膜。泡完澡，这次用的是一个稍微平价的面膜，脸上、甚至仔细到脖子上都抹上了。陈若仪也是多此一举，特别说自己不是裸体，是裹着浴巾的，谁在意这个呀，目光完全被你那又长又扑闪的睫毛给吸引住了。这也太吓人吧，怎么能够长那么长那么密那么翘！嫉妒地说一句，真的很像种的假睫毛呐。陈若仪的睫毛应该是天生的基础好吧，要不然也不会遗传给小孩，一家子都是睫毛精，几个儿子现在这么小都是长睫毛。只是陈若仪现在这个完美状态，一定是后天再经过悉心的呵护培养。网友已经迫不及待让她教教怎么弄睫毛了，陈若仪也是答应地好好的。各种私人物品主动揭秘，安利一些品牌给大家，虽然一再强调是自己的日常小物，还是很让人怀疑，陈若仪是不是在做微商当网红呐，网友建议她开个店，看这回复，也是很有意愿了。她应该不缺这个钱才对。隔三差五介绍下自己用的小刷子之类，陈若仪乐于向大家传授自己的保养呵护之道。她是很容易就被晒出斑的肤质，去海岛参加婚礼，都要必备这几款超爱用的防晒隔离。日常用的、太阳大时候用的，好几个种类，活得相当精致。你们按照自己的需要了解一下。画眉毛，最爱用的是intergrate的眉笔。也是个念旧的人，除了Dior，陈若仪的另一个眉粉其中一个是她高中就开始用的Kate。一般都是大学才开始化妆修饰自己，感受得到陈若仪从小就很爱美。各种小零小碎的化妆品，已经买过七八次的粉红胡椒抛光美体油，每天洗完澡陈若仪都会喷在肚子、大腿、屁股和膝盖手肘，说是能保持肌肤的平滑紧致程度。每安利一样东西，总有网友要在下面问其他问题咋个办，真是相当信任陈若仪了。每次她也很耐心的解答，"去黑头我用的是SUQQU洁面去角质按摩膏磨砂洁面洗面奶，"一定要先按摩再用。她自己已经回购过好几次，意思是你们再了解一下。了解归了解，买不买随意。毕竟像她另一个爱用的达尔肤面膜，效果好是好，价格据说比sk2都还要贵，不是大多数人日常能够消费得起的，大家就看个热闹就好了，还是多买多试多用才能找到最适合自己的护肤方法。'
+
+topn=4
 if __name__=="__main__":
     Documents,res=load_DC()
     doc_list={}
 
 
 
-
+    E1=Eval()
+    E2=Eval()
+    E3=Eval()
+    E4=Eval()
+    E5=Eval()
+    E7=Eval()
+    E8=Eval()
     for key in res:
         title=Documents[key]['title']
         content=Documents[key]['content']
@@ -72,31 +81,53 @@ if __name__=="__main__":
         model6 = BM25_Model(l, stopwords_filename='./Data/stopWord.txt')
         model7= TextRank_with_Title_Model(stopwords_filename='./Data/stopWord.txt')
         model8=KeyGraph_Model(stopwords_filename='./Data/stopWord.txt')
-        print("TFIDF结果:")
-
-        print(model1.run(text))
-        print("TextRank结果:")
-        print(model2.run(l))
-        print("TextRankMultiWiindow结果:")
-        print(model3.run(l))
-        print("TextRankwithTitle结果:")
-        print(model7.run(l, doc_list[key]['title']))
-        print("LDA结果:")
-        print(model4.run(text))
-        print("LSI结果:")
-        print(model5.run(text))
-
-        print('KeyGraph结果:')
-        print(model8.run(l))
-
+        label=doc_list[key]['res'].strip().split(',')
+        print('*'*50)
         print("True结果:")
-        print(doc_list[key]['res'])
+        print(label)
         print('title:')
         print(doc_list[key]['title'])
+        print("TFIDF结果:")
+        pred1=[T[0].lower() for i,T in enumerate(model1.run(text))if i<=topn]
+        print(pred1)
+        E1.add(pred1,label)
+        print("TextRank结果:")
+        pred2 = [T[0].lower() for i, T in enumerate(model2.run(l)) if i <= topn]
+        print(pred2)
+        E2.add(pred2,label)
+        print("TextRankMultiWiindow结果:")
+        pred3 = [T[0].lower() for i, T in enumerate(model3.run(l)) if i <= topn]
+        print(pred3)
+        E3.add(pred3,label)
+        print("TextRankwithTitle结果:")
+        pred7 = [T[0].lower() for i, T in enumerate(model7.run(l,doc_list[key]['title'])) if i <= topn]
+        print(pred7)
+        E7.add(pred7,label)
+        print("LDA结果:")
+        pred4 = [T[0].lower() for i, T in enumerate(model4.run(text)) if i <= topn]
+        print(pred4)
+        E4.add(pred4,label)
+        print("LSI结果:")
+        pred5 = [T[0].lower() for i, T in enumerate(model5.run(text)) if i <= topn]
+        print(pred5)
+        E5.add(pred5,label)
+        print('KeyGraph结果:')
+        pred8 = [T.lower() for i, T in enumerate(model8.run(l)) if i <= topn]
+        print(pred8)
+        E8.add(pred8,label)
 
 
-        if i>5:
-            break
+
+
+
+
+    print(E1.run())
+    print(E2.run())
+    print(E3.run())
+    print(E4.run())
+    print(E5.run())
+    print(E7.run())
+    print(E8.run())
 
 '''
 
