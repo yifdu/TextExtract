@@ -3,8 +3,7 @@ Model:
 - [x] TF-IDF
 - [x] TextRank(三种形式)
 - [x] TopicModel(LDA、LSI)
-- [ ] RAKE
-- [ ] SKE
+- [x] RAKE
 - [x] KeyGraph
 - [x] BM25
 
