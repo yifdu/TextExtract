@@ -2,6 +2,8 @@ import jieba
 import jieba.posseg as pseg
 import codecs
 import re
+import operator
+
 def is_number(s):
     try:
         float(s) if '.' in s else int (s)
@@ -9,48 +11,105 @@ def is_number(s):
     except ValueError:
         return False
 
+
+class Word():
+    def __init__(self, char, freq = 0, deg = 0):
+        self.freq = freq
+        self.deg = deg
+        self.char = char
+
+    def returnScore(self):
+        return self.deg/self.freq
+
+    def updateOccur(self, phraseLength):
+        self.freq += 1
+        self.deg += phraseLength
+
+    def getChar(self):
+        return self.char
+
+    def updateFreq(self):
+        self.freq += 1
+
+    def getFreq(self):
+        return self.freq
+
+
 class RAKE_Model:
-    def __init__(self,stopwords_filename=None):
-        if stopwords_filename:
+    def __init__(self,stopwords_filename=None,separteword_filename=None):
+        if stopwords_filename and separteword_filename:
             stopword_file = codecs.open(stopwords_filename, "r", encoding='utf-8')
             self.stopwords = set([line.strip() for line in stopword_file])
+            separteword_file=codecs.open(separteword_filename,'r',encoding='utf-8')
+            self.conjLibList=[line.strip() for line in separteword_file]
+
+    def notNumStr(self,instr):
+        for item in instr:
+            if '\u0041' <= item <= '\u005a' or ('\u0061' <= item <= '\u007a') or item.isdigit():
+                return False
+        return True
 
 
-    def seperate_sentence(self,doc):
-        sentence_delimiters = re.compile(u'[。，！；：.!?,;:\t\\\\"\\(\\)\\\'\u2019\u2013]|\\s\\-\\s')
-        sentences=sentence_delimiters.split(doc)
-        return sentences
-
-    def seperate_words(self,phrase,min_word_return_size):
+    def seperate_words(self,phrase):
         words=[]
-        phrase=list(jieba.cut(phrase))
-        for word in phrase:
-            if len(word)>min_word_return_size and not is_number(word) and word not in self.stopwords and len(word)>1:
-                words.append(word)
-        return words
+        rawtextList = pseg.cut(phrase)
+        textList = []
+        listofSingleWord = dict()
+        lastWord = ''
+        poSPrty = ['m', 'x', 'uj', 'ul', 'mq', 'u', 'v', 'f']
+        meaningfulCount = 0
+        checklist = []
+        for eachWord, flag in rawtextList:
+            checklist.append([eachWord, flag])
+            if eachWord in self.conjLibList or not self.notNumStr(eachWord) or eachWord in self.stopwords or flag in poSPrty or eachWord == '\n':
+                if lastWord != '|':
+                    textList.append("|")
+                    lastWord = "|"
+            elif eachWord not in self.stopwords and eachWord != '\n':
+                textList.append(eachWord)
+                meaningfulCount += 1
+                if eachWord not in listofSingleWord:
+                    listofSingleWord[eachWord] = Word(eachWord)
+                lastWord = ''
 
-    def cal_score(self,phraseList):
+        newList = []
+        tempList = []
+        for everyWord in textList:
+            if everyWord != '|':
+                tempList.append(everyWord)
+            else:
+                newList.append(tempList)
+                tempList = []
+        tempStr = ''
+        for everyWord in textList:
+            if everyWord != '|':
+                tempStr += everyWord + '|'
+            else:
+                if tempStr[:-1] not in listofSingleWord:
+                    listofSingleWord[tempStr[:-1]] = Word(tempStr[:-1])
+                    tempStr = ''
 
-        word_frequency={}
-        word_degree={}
-        for phrase in phraseList:
-            word_list=self.seperate_words(phrase,1)
-            length=len(word_list)
-            word_list_degree=length-1
+        return newList,listofSingleWord,meaningfulCount
 
-            for word in word_list:
-                word_frequency.setdefault(word,0)
-                word_frequency[word]+=1
-                word_degree.setdefault(word,0)
-                word_degree[word]+=word_list_degree
-        for word in word_frequency:
-            word_degree[word]=word_degree[word]+word_frequency[word]
+    def cal_score(self,newList,listofSingleWord,meaningfulCount):
+        outputList = dict()
+        for everyPhrase in newList:
 
-        word_score={}
-        for word in word_frequency:
-            word_score.setdefault(word,0)
-            word_score[word]=(word_degree[word])/(word_frequency[word])
-        return word_score
+            if len(everyPhrase) > 5:
+                continue
+            score = 0
+            phraseString = ''
+            outStr = ''
+            for everyWord in everyPhrase:
+                score += listofSingleWord[everyWord].returnScore()
+                phraseString += everyWord + '|'
+                outStr += everyWord
+            phraseKey = phraseString[:-1]
+            freq = listofSingleWord[phraseKey].getFreq()
+            if freq / meaningfulCount < 0.01 and freq < 3:
+                continue
+            outputList[outStr] = score
+        return outputList
 
     def generate_candidate_keyword_score(self,phrase_list,word_score):
         keyword_candidates={}
@@ -67,10 +126,19 @@ class RAKE_Model:
         return keyword_candidates,keyword_candidates_mean
 
     def run(self,doc):
-        sentences=self.seperate_sentence(doc)
-        word_scores=self.cal_score(sentences)
-        keywords_candidates,keywords_candidates_mean=self.generate_candidate_keyword_score(sentences,word_scores)
-        sorted_keywords=sorted(keywords_candidates.items(),key=lambda d:d[1],reverse=True)
-        sorted_keywords_mean = sorted(keywords_candidates.items(), key=lambda d: d[1], reverse=True)
-        return sorted_keywords,sorted_keywords_mean
+        newList,listofSingleWord,meaningfulCount=self.seperate_words(doc)
+        for everyPhrase in newList:
+            res = ''
+            for everyWord in everyPhrase:
+                listofSingleWord[everyWord].updateOccur(len(everyPhrase))
+                res += everyWord + '|'
+            phraseKey = res[:-1]
+            if phraseKey not in listofSingleWord:
+                listofSingleWord[phraseKey] = Word(phraseKey)
+            else:
+                listofSingleWord[phraseKey].updateFreq()
+
+        word_scores=self.cal_score(newList,listofSingleWord,meaningfulCount)
+        sorted_list = sorted(word_scores.items(), key=operator.itemgetter(1), reverse=True)
+        return sorted_list
 

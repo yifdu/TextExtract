@@ -62,6 +62,7 @@ if __name__=="__main__":
     E5=Eval()
     E7=Eval()
     E8=Eval()
+    E9=Eval()
     for key in res:
         title=Documents[key]['title']
         content=Documents[key]['content']
@@ -78,6 +79,7 @@ if __name__=="__main__":
         model6 = BM25_Model(l, stopwords_filename='./Data/stopWord.txt')
         model7= TextRank_with_Title_Model(stopwords_filename='./Data/stopWord.txt')
         model8=KeyGraph_Model(stopwords_filename='./Data/stopWord.txt')
+        model9=RAKE_Model(stopwords_filename='./Data/stopWord.txt',separteword_filename='./Data/separateWords.txt')
         label=doc_list[key]['res'].strip().split(',')
         print('*'*50)
         print("True结果:")
@@ -110,11 +112,13 @@ if __name__=="__main__":
         E5.add(pred5,label)
         print('KeyGraph结果:')
         pred8 = [T.lower() for i, T in enumerate(model8.run(l)) if i <= topn]
+
         print(pred8)
         E8.add(pred8,label)
-
-
-
+        print('RAKE结果:')
+        pred9 = [T[0] for i, T in enumerate(model9.run(text)) if i <= topn]
+        print(pred9)
+        E9.add(pred9,label)
 
 
 
@@ -125,6 +129,7 @@ if __name__=="__main__":
     print(E5.run())
     print(E7.run())
     print(E8.run())
+    print(E9.run())
 
 '''
 
